@@ -1,4 +1,3 @@
 FROM openjdk:18
-COPY ./target/classes/com /tmp/com
-WORKDIR /tmp
-ENTRYPOINT ["java", "com.napier.sem.App"]
+COPY target/sem-0.1.0.1-jar-with-dependencies.jar app.jar
+ENTRYPOINT ["java", "-jar", "/app.jar"]
