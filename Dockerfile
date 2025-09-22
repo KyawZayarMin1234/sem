@@ -1,3 +1,4 @@
 FROM openjdk:18
-COPY target/sem-0.1.0.1-jar-with-dependencies.jar app.jar
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+COPY ./target/sem-0.1.0.2-jar-with-dependencies.jar /tmp
+WORKDIR /tmp
+ENTRYPOINT ["java", "-jar", "sem-0.1.0.2-jar-with-dependencies.jar"]
