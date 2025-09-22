@@ -1,7 +1,13 @@
 testing 1 
 
-![workflow](https://github.com/KyawZayarMin1234/sem/actions/workflows/main.yml/badge.svg)
 
-[![LICENSE](https://img.shields.io/github/license/KyawZayarMin1234/sem.svg?style=flat-square)](https://github.com/KyawZayarMin1234/sem/blob/master/LICENSE)
+# DevOps
 
-[![Releases](https://img.shields.io/github/release/KyawZayarMin1234/sem/all.svg?style=flat-square)](https://github.com/KyawZayarMin1234/sem/releases)
+Master Build  Status ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/KyawZayarMin1234/sem/main.yml?branch=master&style=flat-square)
+
+Develop Build Status ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/KyawZayarMin1234/sem/main.yml?branch=develop&style=flat-square)
+
+License [![LICENSE](https://img.shields.io/github/license/KyawZayarMin1234/sem.svg?style=flat-square)](https://github.com/KyawZayarMin1234/sem/blob/develop/LICENSE)
+
+Release [![Releases](https://img.shields.io/github/release/KyawZayarMin1234/sem/all.svg?style=flat-square)](https://github.com/KyawZayarMin1234/sem/releases)
+
