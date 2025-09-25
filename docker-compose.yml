@@ -1,12 +1,25 @@
-version: '3'
 services:
-  # Application Dockerfile is in same folder which is .
   app:
     build: .
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_USER: app            # must match the user you created
+      DB_PASSWORD: example
+      DB_NAME: employees
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped   # optional, keeps it running
 
-  # db is is db folder
   db:
     build: db/.
-    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: example
     ports:
       - "33070:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-pexample"]
+      interval: 5s
+      timeout: 3s
+      retries: 30

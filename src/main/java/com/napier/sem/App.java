@@ -2,61 +2,56 @@ package com.napier.sem;
 
 import java.sql.*;
 
-public class App
-{
-    public static void main(String[] args)
-    {
-        try
-        {
-            // Load Database driver
-            Class.forName("com.mysql.cj.jdbc.Driver");
-        }
-        catch (ClassNotFoundException e)
-        {
-            System.out.println("Could not load SQL driver");
-            System.exit(-1);
+public class App {
+    public static void main(String[] args) {
+        try { Class.forName("com.mysql.cj.jdbc.Driver"); }
+        catch (ClassNotFoundException e) {
+            System.out.println("Could not load SQL driver"); System.exit(-1);
         }
 
-        // Connection to the database
+        String host = getenvOr("DB_HOST", "db");
+        String port = getenvOr("DB_PORT", "3306");
+        String db   = getenvOr("DB_NAME", "employees");
+        String user = getenvOr("DB_USER", "root");
+        String pass = getenvOr("DB_PASSWORD", "example");
+
+        String url = String.format(
+                "jdbc:mysql://%s:%s/%s?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC",
+                host, port, db
+        );
+
         Connection con = null;
-        int retries = 100;
-        for (int i = 0; i < retries; ++i)
-        {
-            System.out.println("Connecting to database...");
-            try
-            {
-                // Wait a bit for db to start
-                Thread.sleep(30000);
-                // Connect to database
-                con = DriverManager.getConnection("jdbc:mysql://db:3306/employees?useSSL=false", "root", "example");
+        int retries = 10; // no need for 100 and 30s waits
+        for (int i = 1; i <= retries; i++) {
+            System.out.printf("Connecting to database (attempt %d/%d)...%n", i, retries);
+            try {
+                con = DriverManager.getConnection(url, user, pass);
                 System.out.println("Successfully connected");
-                // Wait a bit
-                Thread.sleep(10000);
-                // Exit for loop
                 break;
-            }
-            catch (SQLException sqle)
-            {
-                System.out.println("Failed to connect to database attempt " + Integer.toString(i));
-                System.out.println(sqle.getMessage());
-            }
-            catch (InterruptedException ie)
-            {
-                System.out.println("Thread interrupted? Should not happen.");
+            } catch (SQLException sqle) {
+                System.out.println("Failed: " + sqle.getMessage());
+                try { Thread.sleep(3000); } catch (InterruptedException ignored) {}
             }
         }
 
-        if (con != null)
-        {
-            try
-            {
-                // Close connection
-                con.close();
-            }
-            catch (Exception e)
-            {
-                System.out.println("Error closing connection to database");
-            }
+        if (con == null) {
+            System.out.println("Could not connect to database. Exiting.");
+            System.exit(1);
         }
+
+        // quick smoke test: count employees
+        try (Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery("SELECT COUNT(*) AS cnt FROM employees.employees")) {
+            if (rs.next()) System.out.println("employees count = " + rs.getLong("cnt"));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        try { con.close(); } catch (Exception ignored) {}
+    }
+
+    private static String getenvOr(String k, String def) {
+        String v = System.getenv(k);
+        return (v == null || v.isEmpty()) ? def : v;
     }
 }

@@ -1,0 +1,22 @@
+version: '3'
+services:
+  app:
+    build: .
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_USER: root
+      DB_PASSWORD: example
+      DB_NAME: employees
+    # ports: add if your app needs to be reachable from host, e.g.:
+    # - "8080:8080"
+
+  db:
+    build: db/.
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+    ports:
+      - "33070:3306"
