@@ -1,0 +1,53 @@
+@startuml
+title HR System - Use Case Diagram (All Use Cases)
+left to right direction
+skinparam linetype ortho
+skinparam packageStyle rectangle
+
+actor HR as "HR Advisor"
+actor DM as "Department Manager"
+
+rectangle "HR System" {
+  ' Reporting use cases
+  usecase UC1 as "Get all salaries"
+  usecase UC2 as "Get salaries\nby department"
+  usecase UC3 as "Manager gets\nown dept salaries"
+  usecase UC4 as "Get salaries\nby role"
+  usecase UCP as "Print salaries"
+
+  ' CRUD use cases
+  usecase UC5 as "Add employee"
+  usecase UC6 as "View employee"
+  usecase UC7 as "Update employee"
+  usecase UC8 as "Delete employee"
+
+  ' Includes
+  UC1 ..> UCP : <<include>>
+  UC2 ..> UCP : <<include>>
+  UC3 ..> UCP : <<include>>
+  UC4 ..> UCP : <<include>>
+}
+
+rectangle Database
+
+' Actor → Use Cases
+HR --> UC1
+HR --> UC2
+HR --> UC4
+HR --> UC5
+HR --> UC6
+HR --> UC7
+HR --> UC8
+
+DM --> UC3
+
+' Use Cases → Database
+UC1 --> Database
+UC2 --> Database
+UC3 --> Database
+UC4 --> Database
+UC5 --> Database
+UC6 --> Database
+UC7 --> Database
+UC8 --> Database
+@enduml

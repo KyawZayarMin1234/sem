@@ -16,11 +16,13 @@ public class Employee {
     public String toString() {
         return String.format(
                 "%d %s %s%n%s%nSalary: %d%n%s%nManager: %s%n",
-                emp_no, first_name, last_name,
-                title,
+                emp_no,
+                first_name,
+                last_name,
+                (title == null ? "N/A" : title),
                 salary,
-                dept_name,
-                manager
+                (dept_name == null ? "N/A" : dept_name),
+                (manager == null ? "N/A" : manager)
         );
     }
 }
