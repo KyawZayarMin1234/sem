@@ -18,9 +18,11 @@ jobs:
           java-version: '17'
           cache: maven
 
+      # Run all unit tests (auto-discovers com.napier.devops.AppTest and others)
       - name: Unit Tests
-        run: mvn -Dtest=com.napier.sem.AppTest test
+        run: mvn -B test
 
+      # Package the app without re-running tests, then start Docker Compose
       - name: Package and Run docker compose
         run: |
           mvn -B -DskipTests package
