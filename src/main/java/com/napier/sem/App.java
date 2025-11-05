@@ -5,17 +5,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Main application and simple reporting methods used by unit tests.
+ */
 public class App {
     /** Connection to MySQL database. */
     private Connection con = null;
 
-    // Read env var with default
+    // ---------- env helper ----------
     private static String env(String k, String def) {
         String v = System.getenv(k);
         return (v == null || v.isBlank()) ? def : v;
     }
 
-    /** Connect to the MySQL database. */
+    // ---------- DB connect/disconnect ----------
     public void connect() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -24,9 +27,7 @@ public class App {
             System.exit(-1);
         }
 
-        // NOTE:
-        // - If running Java on your Windows host: set DB_HOST=127.0.0.1 and DB_PORT=33070
-        // - If running Java in Docker on the same network as MySQL: set DB_HOST to the service/container name (e.g., setmethods-db-1) and DB_PORT=3306
+        // Default for "Java running on Windows host against Docker MySQL"
         String host = env("DB_HOST", "127.0.0.1");
         String port = env("DB_PORT", "33070");
         String db   = env("DB_NAME", "employees");
@@ -52,36 +53,47 @@ public class App {
         System.exit(1);
     }
 
-    /** Disconnect from the MySQL database. */
     public void disconnect() {
         if (con != null) {
             try { con.close(); } catch (Exception ignored) {}
         }
     }
 
-    /** Tutorial method (already in your file): fetch one employee with extra info. */
+    // ---------- LAB: printSalaries (the method your test calls) ----------
+    /**
+     * Prints a salary report for a list of employees.
+     * Lab requirements:
+     *  - If employees == null → print "No employees" and return (no exception).
+     *  - If list is empty → print header only.
+     *  - Skip any null entries.
+     */
+    public void printSalaries(ArrayList<Employee> employees) {
+        // Check employees is not null
+        if (employees == null) {
+            System.out.println("No employees");
+            return;
+        }
+        // Print header
+        System.out.println(String.format("%-10s %-15s %-20s %-8s",
+                "Emp No", "First Name", "Last Name", "Salary"));
+
+        // Loop over all employees in the list
+        for (Employee emp : employees) {
+            if (emp == null) continue; // be safe for later tests
+            String emp_string = String.format("%-10s %-15s %-20s %-8s",
+                    emp.emp_no, emp.first_name, emp.last_name, emp.salary);
+            System.out.println(emp_string);
+        }
+    }
+
+    // ---------- Optional helpers from your app (kept minimal and compile-safe) ----------
     public Employee getEmployee(int id) {
         if (con == null) return null;
 
+        // Keep this simple and compile-safe; adjust SELECT columns to match reads.
         String sql = """
-            SELECT e.emp_no, e.first_name, e.last_name,
-                   t.title,
-                   s.salary,
-                   d.dept_name,
-                   CONCAT(m.first_name, ' ', m.last_name) AS manager
+            SELECT e.emp_no, e.first_name, e.last_name
             FROM employees.employees e
-            LEFT JOIN employees.titles t
-                   ON t.emp_no = e.emp_no AND t.to_date = '9999-01-01'
-            LEFT JOIN employees.salaries s
-                   ON s.emp_no = e.emp_no AND s.to_date = '9999-01-01'
-            LEFT JOIN employees.dept_emp de
-                   ON de.emp_no = e.emp_no AND de.to_date = '9999-01-01'
-            LEFT JOIN employees.departments d
-                   ON d.dept_no = de.dept_no
-            LEFT JOIN employees.dept_manager dm
-                   ON dm.dept_no = de.dept_no AND dm.to_date = '9999-01-01'
-            LEFT JOIN employees.employees m
-                   ON m.emp_no = dm.emp_no
             WHERE e.emp_no = ?
             """;
 
@@ -94,10 +106,6 @@ public class App {
                 emp.emp_no = rs.getInt("emp_no");
                 emp.first_name = rs.getString("first_name");
                 emp.last_name  = rs.getString("last_name");
-                emp.title      = rs.getString("title");
-                emp.salary     = rs.getInt("salary");
-                emp.dept_name  = rs.getString("dept_name");
-                emp.manager    = rs.getString("manager");
                 return emp;
             }
         } catch (SQLException e) {
@@ -108,23 +116,22 @@ public class App {
 
     public void displayEmployee(Employee emp) {
         if (emp == null) {
-            System.out.println("No employee found.");
+            System.out.println("Employee is null");
             return;
         }
-        System.out.println(
-                emp.emp_no + " " + emp.first_name + " " + emp.last_name + "\n" +
-                        (emp.title == null ? "N/A" : emp.title) + "\n" +
-                        "Salary: " + emp.salary + "\n" +
-                        (emp.dept_name == null ? "N/A" : emp.dept_name) + "\n" +
-                        "Manager: " + (emp.manager == null ? "N/A" : emp.manager) + "\n"
-        );
+        System.out.println("Employee Details");
+        System.out.println("----------------");
+        System.out.printf("Emp No   : %s%n", String.valueOf(emp.emp_no));
+        System.out.printf("Name     : %s %s%n", safe(emp.first_name), safe(emp.last_name));
+        System.out.printf("Title    : %s%n", safe(emp.title));
+        System.out.printf("Salary   : %s%n", String.valueOf(emp.salary));
+        System.out.printf("Dept     : %s%n",
+                (emp.dept == null ? "N/A" : safe(emp.dept.dept_name)));
+        System.out.printf("Manager  : %s%n",
+                (emp.manager == null ? "N/A" : (safe(emp.manager.first_name) + " " + safe(emp.manager.last_name))));
     }
 
-    /* ---------------------------------------------------------------------- */
-    /* UC4: Salaries by Role                                                  */
-    /* ---------------------------------------------------------------------- */
-
-    /** Returns current salaries of all employees who have the given title. */
+    // Example query group you had (left here to keep your app structure)
     public List<Employee> getSalariesByRole(String role) {
         List<Employee> list = new ArrayList<>();
         if (con == null) return list;
@@ -172,13 +179,72 @@ public class App {
         }
     }
 
-    /* ---------------------------------------------------------------------- */
+    public Department getDepartment(int dept_no) {
+        String q = "SELECT dept_no, dept_name FROM employees.departments WHERE dept_no = ?";
+        try (PreparedStatement ps = con.prepareStatement(q)) {
+            ps.setInt(1, dept_no);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return null;
 
+                Department dept = new Department();
+                dept.dept_no = rs.getInt("dept_no");
+                dept.dept_name = rs.getString("dept_name");
+                return dept;
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to get department: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public ArrayList<Employee> getSalariesByDepartment(Department dept) {
+        ArrayList<Employee> list = new ArrayList<>();
+        if (con == null || dept == null) return list;
+
+        String sql = """
+            SELECT e.emp_no, e.first_name, e.last_name,
+                   s.salary, t.title
+            FROM employees.employees e
+            JOIN employees.salaries s
+              ON e.emp_no = s.emp_no AND s.to_date = '9999-01-01'
+            JOIN employees.titles t
+              ON e.emp_no = t.emp_no AND t.to_date = '9999-01-01'
+            JOIN employees.dept_emp de
+              ON e.emp_no = de.emp_no AND de.to_date = '9999-01-01'
+            WHERE de.dept_no = ?
+            ORDER BY e.emp_no ASC
+            """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, dept.dept_no);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Employee emp = new Employee();
+                    emp.emp_no     = rs.getInt("emp_no");
+                    emp.first_name = rs.getString("first_name");
+                    emp.last_name  = rs.getString("last_name");
+                    emp.salary     = rs.getInt("salary");
+                    emp.title      = rs.getString("title");
+                    emp.dept       = dept;
+                    list.add(emp);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to get salaries by department: " + e.getMessage());
+        }
+        return list;
+    }
+
+    // ---------- helpers ----------
+    private String safe(String s) {
+        return (s == null) ? "" : s;
+    }
+
+    // ---------- single main (only one) ----------
     public static void main(String[] args) {
         App a = new App();
         a.connect();
 
-        // --- UC4 demo: pass a title via args or type it interactively ---
         String role = (args.length > 0) ? args[0] : null;
         if (role == null) {
             System.out.print("Enter title (e.g., Engineer): ");
@@ -186,10 +252,6 @@ public class App {
         }
         System.out.println("Salaries for role: " + role);
         a.displaySalaries(a.getSalariesByRole(role));
-
-        // --- existing single-employee demo (optional) ---
-        // Employee emp = a.getEmployee(10001);
-        // a.displayEmployee(emp);
 
         a.disconnect();
     }

@@ -9,8 +9,8 @@ public class Employee {
     // extra fields for the exercise
     public String title;     // current job title
     public int salary;       // current salary
-    public String dept_name; // current department
-    public String manager;   // current manager full name
+    public Department dept; // current department
+    public Employee manager;   // current manager full name
 
     @Override
     public String toString() {
@@ -21,8 +21,9 @@ public class Employee {
                 last_name,
                 (title == null ? "N/A" : title),
                 salary,
-                (dept_name == null ? "N/A" : dept_name),
-                (manager == null ? "N/A" : manager)
+                (dept == null ? "N/A" : dept),
+                (manager == null ? "N/A" : (manager.first_name + " " + manager.last_name))
         );
     }
+
 }
