@@ -1,4 +1,4 @@
-name: Build & Test (Group5)
+name: Build & Test (sem)
 on: push
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
           cache: maven
 
       - name: Unit Tests
-        run: mvn -Dtest=com.napier.group5.AppTest test
+        run: mvn -Dtest=com.napier.sem.AppTest test
 
       - name: Package and Run docker compose
         run: |
