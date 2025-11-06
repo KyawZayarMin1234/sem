@@ -17,7 +17,7 @@ public final class App {
     private static final int MAX_ROWS = 10;
 
     /** Total connect timeout in ms. */
-    private static final int CONNECT_TIMEOUT_MS = 30000;
+    private static final int CONNECT_TIMEOUT_MS = 100000;
 
     /** Max retry attempts. */
     private static final int MAX_RETRIES = 10;
@@ -41,6 +41,8 @@ public final class App {
         final long end = System.currentTimeMillis() + CONNECT_TIMEOUT_MS;
         int attempt = 0;
         while (System.currentTimeMillis() < end && attempt < MAX_RETRIES) {
+            attempt++;
+            System.out.println("Connecting time" + attempt);
             try {
                 con = DriverManager.getConnection(location);
                 System.out.println("Connected");
