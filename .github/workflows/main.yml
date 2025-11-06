@@ -10,14 +10,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          fetch-depth: 0
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: temurin   # 'adopt' is deprecated
+          distribution: temurin
           java-version: '17'
           cache: maven
       - name: Run Unit Tests
-        run: mvn -B -Dtest=com.napier.devops.AppTest test
+        run: mvn -B -ntp -Dtest=com.napier.devops.AppTest test
 
   build:
     name: Build and Run with Docker Compose
@@ -27,13 +28,21 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          fetch-depth: 0
+
+      - name: Verify db dataset exists
+        run: |
+          ls -la db
+          test -d db/test_db && echo "OK: db/test_db exists" || (echo "MISSING: db/test_db"; exit 1)
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: '17'
           cache: maven
+
       - name: Package and Run docker compose
         run: |
-          mvn -B package -DskipTests
-          docker compose up --abort-on-container-exit
+          mvn -B -ntp package -DskipTests
+          docker compose up --build --abort-on-container-exit --exit-code-from app
