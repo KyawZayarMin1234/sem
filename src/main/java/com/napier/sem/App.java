@@ -11,9 +11,7 @@ import java.util.List;     // <-- needed for printSalaries(List<Employee>)
 /**
  * Application demonstrating JDBC queries and formatted output.
  */
-/**
- *
- */
+
 public final class App {
 
     /** Maximum rows to print in tables. */
