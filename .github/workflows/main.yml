@@ -5,41 +5,35 @@ jobs:
   UnitTests:
     name: Unit Tests
     runs-on: ubuntu-22.04
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '11'
-          distribution: 'adopt'
-
+          distribution: temurin   # 'adopt' is deprecated
+          java-version: '17'
+          cache: maven
       - name: Run Unit Tests
-        run: mvn -Dtest=com.napier.devops.AppTest test
+        run: mvn -B -Dtest=com.napier.devops.AppTest test
 
-  BuildAndRun:
+  build:
     name: Build and Run with Docker Compose
     runs-on: ubuntu-22.04
-    needs: UnitTests    # <-- Ensures UnitTests must pass first
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '11'
-          distribution: 'adopt'
-
-      - name: Package app (skip tests)
-        run: mvn package -DskipTests
-
-      - name: Start containers
-        run: docker compose up --abort-on-container-exit
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Package and Run docker compose
+        run: |
+          mvn -B package -DskipTests
+          docker compose up --abort-on-container-exit
