@@ -23,7 +23,7 @@ public final class App {
     private static final int MAX_RETRIES = 10;
 
     /** Delay between retries in ms (replaces magic 1000). */
-    private static final int RETRY_DELAY_MS = 1000;
+    private static final int RETRY_DELAY_MS = 10000;
 
     /** Active JDBC connection (opened in connect). */
     private Connection con;
