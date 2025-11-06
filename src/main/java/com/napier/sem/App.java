@@ -44,7 +44,7 @@ public final class App {
             attempt++;
             System.out.println("Connecting time" + attempt);
             try {
-                con = DriverManager.getConnection(location);
+                con = DriverManager.getConnection(location,"employees","example");
                 System.out.println("Connected");
                 return;
             } catch (SQLException e) {
@@ -302,7 +302,7 @@ public final class App {
      */
     public static void main(final String[] args) throws Exception {
         final App a = new App();
-        a.connect("jdbc:mysql://db:3306/employees", RETRY_DELAY_MS);
+        a.connect("jdbc:mysql://db:3306/employees?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC", RETRY_DELAY_MS);
         a.disconnect();
     }
 }
