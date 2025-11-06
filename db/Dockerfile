@@ -1,15 +1,16 @@
 # db/Dockerfile
 FROM mysql:8.0.32
 
-# Root password and default DB name (lab expects 'employees')
-ENV MYSQL_ROOT_PASSWORD=example
-ENV MYSQL_DATABASE=employees
+# Root + default DB + app user (used by your app container)
+ENV MYSQL_ROOT_PASSWORD=example \
+    MYSQL_DATABASE=employees \
+    MYSQL_USER=employees \
+    MYSQL_PASSWORD=example
 
-# Copy the whole test_db directory (your layout stays the same)
-# Build context here is the db/ folder, so this path is correct.
+# Bring the full dataset (keep directory layout intact)
 COPY test_db /docker-entrypoint-initdb.d/test_db
 
-# db/Dockerfile (only this part changes)
+# Load the dataset on first boot (runs once when datadir is empty)
 RUN printf '%s\n' '#!/bin/sh' \
     'set -e' \
     'echo "[init] Loading employees.sql into database: $MYSQL_DATABASE"' \
