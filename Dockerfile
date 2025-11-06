@@ -1,4 +1,5 @@
-FROM openjdk:18
-COPY ./target/sem-0.1.0.2-jar-with-dependencies.jar /tmp
+FROM amazoncorretto:17
+COPY ./target/devops.jar /tmp/devops.jar
 WORKDIR /tmp
-ENTRYPOINT ["java", "-jar", "sem-0.1.0.2-jar-with-dependencies.jar"]
+# add a default role as arg 3 so it never prompts
+ENTRYPOINT ["java","-jar","devops.jar","db:3306","30000","Engineer"]

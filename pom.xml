@@ -9,27 +9,22 @@
     <version>0.1.0.2</version>
 
     <properties>
-        <!-- Use release for consistent JDK targeting -->
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <!-- Centralize versions -->
         <junit.jupiter.version>5.10.2</junit.jupiter.version>
         <surefire.version>3.2.5</surefire.version>
     </properties>
 
     <dependencies>
-        <!-- MySQL driver (keep 8.0.33 to match your environment) -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.33</version>
+            <version>8.0.18</version>
         </dependency>
-
-        <!-- JUnit 5 (Jupiter) - include API + params/engine via the aggregate artifact -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
+            <artifactId>junit-jupiter-api</artifactId>
             <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
@@ -43,28 +38,27 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <!-- Use one knob: release 17 (sets source/target/StdLib) -->
                     <release>17</release>
                 </configuration>
             </plugin>
 
-            <!-- Run JUnit 5 tests -->
+            <!-- Run JUnit 5 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version>
+                <version>${surefire.version}</version>
                 <configuration>
-                    <!-- Avoid JPMS/module-path surprises on CI -->
                     <useModulePath>false</useModulePath>
                 </configuration>
             </plugin>
 
-            <!-- Build a fat JAR (jar-with-dependencies) with your App main class -->
+            <!-- Fat JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.7.1</version>
+                <version>3.3.0</version>
                 <configuration>
+                    <finalName>devops</finalName>
                     <archive>
                         <manifest>
                             <mainClass>com.napier.sem.App</mainClass>
@@ -73,6 +67,7 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
+                    <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
                 <executions>
                     <execution>
@@ -84,6 +79,30 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Checkstyle (built-in sun_checks.xml) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.6.0</version>
+                <configuration>
+                    <configLocation>sun_checks.xml</configLocation>
+                    <consoleOutput>true</consoleOutput>
+                    <failOnViolation>true</failOnViolation>
+                    <linkXRef>false</linkXRef>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>checkstyle-verify</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 </project>

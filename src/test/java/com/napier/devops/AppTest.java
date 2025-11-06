@@ -43,11 +43,10 @@ class AppTest {
         ArrayList<Employee> employees = new ArrayList<>();
 
         Employee emp = new Employee();
-        emp.emp_no = 1;
-        emp.first_name = "Kevin";
-        emp.last_name = "Chalmers";
-        emp.salary = 55000;
-        employees.add(emp);
+        emp.setEmpNo(1);
+        emp.setFirstName("Kevin");
+        emp.setLastName("Chalmers");
+        emp.setSalary(55000);
 
         app.printSalaries(employees);  // Should print one row
     }

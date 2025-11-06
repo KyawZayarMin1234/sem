@@ -1,17 +1,23 @@
 package com.napier.sem;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-public class Main {
-    public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+/**
+ * Entrypoint helper for small demos/tests.
+ */
+public final class Main {
+    /** Prevent instantiation of utility class. */
+    private Main() { }
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
+    /**
+     * Simple demo showing fixed line lengths and no magic numbers inline.
+     *
+     * @param args command-line arguments
+     */
+    public static void main(final String[] args) {
+        final int demoRepeat = 5;
+        for (int i = 0; i < demoRepeat; i++) {
+            System.out.println("SEM demo run " + (i + 1));
         }
+        System.out.println(
+                "Keep main small; the real app entry is com.napier.sem.App.");
     }
 }
