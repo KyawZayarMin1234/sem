@@ -20,7 +20,7 @@ public final class App {
     private static final int CONNECT_TIMEOUT_MS = 30000;
 
     /** Max retry attempts. */
-    private static final int MAX_RETRIES = 3;
+    private static final int MAX_RETRIES = 10;
 
     /** Delay between retries in ms (replaces magic 1000). */
     private static final int RETRY_DELAY_MS = 1000;
