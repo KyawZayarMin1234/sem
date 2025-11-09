@@ -1,48 +1,84 @@
 name: SEM CI Build
-on: push
+on:
+  push:
+    branches: [ master, lab08 ]
 
 jobs:
   UnitTests:
     name: Unit Tests
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
           cache: maven
-      - name: Run Unit Tests
-        run: mvn -B -ntp -Dtest=com.napier.devops.AppTest test
+      - name: Unit Tests
+        run: mvn -B -Dtest=com.napier.devops.AppTest test
+
+  IntegrationTests:
+    name: Integration Tests
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Build DB image
+        run: docker build -t employees-db ./db
+
+      - name: Start DB
+        run: docker run -d --name employees -p 33060:3306 employees-db
+
+      - name: Wait for DB to be healthy
+        run: |
+          for i in {1..60}; do
+            if docker exec employees mysqladmin ping -pexample --silent; then
+              echo "DB is up"; exit 0
+            fi
+            echo "Waiting for DB..."; sleep 2
+          done
+          echo "DB did not become healthy in time"; docker logs employees; exit 1
+
+      - name: Integration Tests (runs both and generates JaCoCo)
+        env:
+          INT_DB_URL: "jdbc:mysql://localhost:33060/employees?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+          DB_USER: app
+          DB_PASS: example
+        run: mvn -B -Dtest=com.napier.devops.AppIntegrationTest test
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          directory: ./target/site/jacoco
+          flags: "integration"
+          verbose: true
+          # token not needed for public repos
+
+      - name: Stop DB
+        if: always()
+        run: |
+          docker logs employees || true
+          docker stop employees || true
+          docker rm employees || true
+          docker image rm employees-db || true
 
   build:
     name: Build and Run with Docker Compose
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0
-
-      - name: Verify db dataset exists
-        run: |
-          ls -la db
-          test -d db/test_db && echo "OK: db/test_db exists" || (echo "MISSING: db/test_db"; exit 1)
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
           cache: maven
-
       - name: Package and Run docker compose
         run: |
-          mvn -B -ntp package -DskipTests
-          docker compose up --build --abort-on-container-exit --exit-code-from app
+          mvn -B package -DskipTests
+          docker compose up --abort-on-container-exit

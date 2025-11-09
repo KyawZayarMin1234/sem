@@ -26,6 +26,12 @@ DROP DATABASE IF EXISTS employees;
 CREATE DATABASE IF NOT EXISTS employees;
 USE employees;
 
+-- db/init/02-app-user.sql
+CREATE USER IF NOT EXISTS 'app'@'%' IDENTIFIED BY 'example';
+GRANT ALL PRIVILEGES ON employees.* TO 'app'@'%';
+FLUSH PRIVILEGES;
+
+
 SELECT 'CREATING DATABASE STRUCTURE' as 'INFO';
 
 DROP TABLE IF EXISTS dept_emp,

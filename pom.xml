@@ -7,6 +7,7 @@
     <groupId>com.napier.sem</groupId>
     <artifactId>sem</artifactId>
     <version>0.1.0.2</version>
+    <packaging>jar</packaging>
 
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
@@ -14,17 +15,30 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <junit.jupiter.version>5.10.2</junit.jupiter.version>
         <surefire.version>3.2.5</surefire.version>
+        <!-- Latest JaCoCo that supports JDK 24+ -->
+        <jacoco.version>0.8.12</jacoco.version>
     </properties>
 
     <dependencies>
+        <!-- MySQL JDBC driver -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.18</version>
         </dependency>
+
+        <!-- JUnit 5 API (compile-time for tests) -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- JUnit 5 Engine (runtime for tests) -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
             <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
@@ -38,18 +52,41 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <release>17</release>
+                    <release>${maven.compiler.release}</release>
                 </configuration>
             </plugin>
 
-            <!-- Run JUnit 5 -->
+            <!-- JUnit 5 runner -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire.version}</version>
                 <configuration>
                     <useModulePath>false</useModulePath>
+                    <!-- IMPORTANT: propagate JaCoCo agent options into the forked test JVM -->
+                    <argLine>${argLine}</argLine>
                 </configuration>
+            </plugin>
+
+            <!-- JaCoCo coverage (compatible with JDK 24+) -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- Fat JAR -->
@@ -80,7 +117,7 @@
                 </executions>
             </plugin>
 
-            <!-- Checkstyle (built-in sun_checks.xml) -->
+            <!-- Checkstyle -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
@@ -102,7 +139,6 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
 </project>
