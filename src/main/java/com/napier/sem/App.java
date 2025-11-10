@@ -20,10 +20,10 @@ public final class App {
     private static final int CONNECT_TIMEOUT_MS = 100_000;
 
     /** Max retry attempts (safety cap). */
-    private static final int MAX_RETRIES = 1_000;
+    private static final int MAX_RETRIES = 1000;
 
     /** Delay between retries in ms (used by main/demo). */
-    private static final int RETRY_DELAY_MS = 10_000;
+    private static final int RETRY_DELAY_MS = 10000;
 
     /** Active JDBC connection (opened in connect). */
     private Connection con;
