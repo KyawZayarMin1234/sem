@@ -19,7 +19,7 @@ public class AppIntegrationTest {
         String url = "jdbc:mysql://127.0.0.1:35432/employees"
                 + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
         // 1s retry delay inside App.connect
-        app.connect(url, 1000);
+        app.connect(url, 10000);
     }
 
     @AfterAll
