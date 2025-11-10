@@ -55,10 +55,10 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          directory: ./target/site/jacoco
-          flags: "integration"
+          token: ${{ secrets.CODECOV_TOKEN }}     # ok for public repos too
+          files: ./target/site/jacoco/jacoco.xml  # point to the XML report
+          flags: integration
           verbose: true
-          # token not needed for public repos
 
       - name: Stop DB
         if: always()

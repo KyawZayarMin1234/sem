@@ -9,4 +9,4 @@ services:
     build: db/.
     restart: always
     ports:
-      - "33070:3306"
+      - "127.0.0.1:35432:3306"

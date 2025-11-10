@@ -6,25 +6,24 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.List;     // <-- needed for printSalaries(List<Employee>)
+import java.util.List;
 
 /**
  * Application demonstrating JDBC queries and formatted output.
  */
-
 public final class App {
 
     /** Maximum rows to print in tables. */
     private static final int MAX_ROWS = 10;
 
     /** Total connect timeout in ms. */
-    private static final int CONNECT_TIMEOUT_MS = 100000;
+    private static final int CONNECT_TIMEOUT_MS = 100_000;
 
-    /** Max retry attempts. */
-    private static final int MAX_RETRIES = 1000;
+    /** Max retry attempts (safety cap). */
+    private static final int MAX_RETRIES = 1_000;
 
-    /** Delay between retries in ms (replaces magic 1000). */
-    private static final int RETRY_DELAY_MS = 10000;
+    /** Delay between retries in ms (used by main/demo). */
+    private static final int RETRY_DELAY_MS = 10_000;
 
     /** Active JDBC connection (opened in connect). */
     private Connection con;
@@ -35,27 +34,33 @@ public final class App {
     /**
      * Connect to the database with retries.
      *
-     * @param location JDBC URL
+     * @param location JDBC URL (must include host:port/dbname)
      * @param delay    milliseconds between retries
      */
     public void connect(final String location, final int delay) {
-        final long end = System.currentTimeMillis() + CONNECT_TIMEOUT_MS;
+        final long deadline = System.currentTimeMillis() + CONNECT_TIMEOUT_MS;
+
+        // Read credentials from env (overrideable in CI/IDE)
+        final String user = System.getenv().getOrDefault("DB_USER", "app");
+        final String pass = System.getenv().getOrDefault("DB_PASS", "example");
+
         int attempt = 0;
-        while (System.currentTimeMillis() < end && attempt < MAX_RETRIES) {
+        while (System.currentTimeMillis() < deadline && attempt < MAX_RETRIES) {
             attempt++;
             System.out.println("Connecting time" + attempt);
             try {
-                con = DriverManager.getConnection(location,"employees","example");
-                System.out.println("Connected");
+                con = DriverManager.getConnection(location, user, pass);
+                System.out.println("Connected as " + user);
                 return;
             } catch (SQLException e) {
-                attempt++;
                 System.out.println("Connect failed: " + e.getMessage());
-                try {
-                    Thread.sleep(delay);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    return;
+                if (delay > 0) {
+                    try {
+                        Thread.sleep(delay);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
                 }
             }
         }
@@ -99,7 +104,7 @@ public final class App {
     }
 
     /**
-     * NEW: Print a list of Employee DTOs (used by unit tests).
+     * Print a list of Employee DTOs (used by unit tests).
      *
      * @param employees list of employees; may be {@code null} or contain nulls
      */
@@ -117,14 +122,11 @@ public final class App {
                 continue;
             }
             final int no = e.getEmpNo();
-            final String fn =
-                    e.getFirstName() == null ? "" : e.getFirstName();
-            final String ln =
-                    e.getLastName() == null ? "" : e.getLastName();
+            final String fn = e.getFirstName() == null ? "" : e.getFirstName();
+            final String ln = e.getLastName() == null ? "" : e.getLastName();
             final int sal = e.getSalary();
 
-            System.out.printf("%-10d %-15s %-15s %-10d%n",
-                    no, fn, ln, sal);
+            System.out.printf("%-10d %-15s %-15s %-10d%n", no, fn, ln, sal);
 
             printed++;
             if (printed >= MAX_ROWS) {
@@ -296,14 +298,15 @@ public final class App {
     }
 
     /**
-     * Entry point used by Docker image (kept small for Checkstyle).
-     *
-     * @param args CLI args (unused)
-     * @throws Exception on failure
+     * Entry point used by Docker image (demo).
      */
-    public static void main(final String[] args) throws Exception {
+    public static void main(final String[] args) {
         final App a = new App();
-        a.connect("jdbc:mysql://db:3306/employees?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC", RETRY_DELAY_MS);
+        // Host-mapped port; adjust if your compose uses another one.
+        final String url =
+                "jdbc:mysql://127.0.0.1:35432/employees"
+                        + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+        a.connect(url, RETRY_DELAY_MS);
         a.disconnect();
     }
 }
