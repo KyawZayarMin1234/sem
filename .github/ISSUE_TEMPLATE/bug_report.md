@@ -1,9 +1,9 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: creating bug reports
 title: bug report
-labels: ''
-assignees: ''
+labels: bug
+assignees: KyawZayarMin1234
 
 ---
 
